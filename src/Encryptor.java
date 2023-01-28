@@ -15,12 +15,12 @@ public class Encryptor {
         try {System.out.println("Encrypted text: " + Files.readString(Path.of(PATH + "test.crypto")));} catch (IOException e){};
 
     }
-
+    
     public void encode(String plainFile, String keyFile, String cryptoFileName){
         //Setup - Read from .plain and .key files and create .crypto file
         try{
-        String plain = Files.readString(Path.of(PATH + plainFile));
-        String key = Files.readString(Path.of(PATH + keyFile));
+        String plainText = Files.readString(Path.of(PATH + plainFile)).toLowerCase().trim();
+        String key = Files.readString(Path.of(PATH + keyFile)).toLowerCase().trim();
         File cFile = new File(PATH + cryptoFileName + ".crypto");
         cFile.createNewFile();
 
@@ -28,32 +28,21 @@ public class Encryptor {
         BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
         StringBuilder stringBuilder = new StringBuilder();
 
-        int kc = 0;
-        for(int i = 0; i > plain.length(); i++){
+        for(int p = 0, k = 0; p < plainText.length(); p++,k++) {
+            stringBuilder.append(CHARS.charAt((CHARS.indexOf(plainText.charAt(p)) + CHARS.indexOf(key.charAt(k))) % (CHARS.length())));
 
+
+            if(k == key.length()-1)
+                k = -1;
         }
-
-
-
-
-
-
-
-
-
-
+        bufferedWriter.write(stringBuilder.toString());
+        bufferedWriter.close();
         }
         catch (IOException e){
             System.out.println("Error while setting up: " + e);
             return;
         }
-
-
-
-
-
     }
-
 
 
 

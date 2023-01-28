@@ -2,22 +2,43 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Map;
 
 public class Encryptor {
 
     final static String CHARS = "abcdefghijklmnopqrstuvwxyzåäö";
+    final static Double[] CHAR_FREQ = {10.04,1.31,1.71,4.90,9.85,1.81,3.44,2.85,5.01,0.90,3.24,4.81,3.55,8.45,4.06,1.57,0.01,7.88,5.32,8.89,1.86,2.55,0.11,0.49,0.04,1.66,2.10,1.50}
     final static String PATH = "/Users/savvas/Desktop/CRYPTO/CRYPTO-LABS/src/";
+
+    final static int MIN_KEYLENGTH = 1, MAX_KEYLENGTH = 16;
 
 
     public static void main(String[] args) {
         Encryptor enc = new Encryptor();
         enc.encrypt("test.plain", "test.key", "test");
-        try {System.out.println("Encrypted text: " + Files.readString(Path.of(PATH + "test.crypto")));} catch (IOException e) {};
+        try {
+            System.out.println("Encrypted text: " + Files.readString(Path.of(PATH + "test.crypto")));
+        } catch (IOException e) {
+        }
+        ;
         enc.decrypt("test.crypto", "test.key", "testDecrypted");
-        try {System.out.println("Decrypted text: " + Files.readString(Path.of(PATH + "testDecrypted.plain")));} catch (IOException e) {};
-        enc.crackEncryptionIOC("test.crypto", "testCrackedIOC");
-        try {System.out.println("CrackedIOC text: " + Files.readString(Path.of(PATH + "testCrackedIOC.plain")));} catch (IOException e) {};
+        try {
+            System.out.println("Decrypted text: " + Files.readString(Path.of(PATH + "testDecrypted.plain")));
+        } catch (IOException e) {
+        }
+        ;
+
+
+        System.out.println(enc.indexOfCoincidence("VHVSSPQUCEMRVBVBBBVHVSURQGIBDUGRNICJQUCERVUAXSSR").toString());
+
+
+        enc.crackEncryptionKasiski("test.crypto", "testCrackedIOC");
+        try {
+            System.out.println("CrackedIOC text: " + Files.readString(Path.of(PATH + "testCrackedIOC.plain")));
+        } catch (IOException e) {
+        }
+        ;
     }
 
     public void encrypt(String plainFileName, String keyFileName, String cryptoFileName) {
@@ -58,7 +79,7 @@ public class Encryptor {
 
             for (int p = 0, k = 0; p < cipherText.length(); p++, k++) {
                 int charPos = CHARS.indexOf(cipherText.charAt(p)) - CHARS.indexOf(key.charAt(k));
-                stringBuilder.append(CHARS.charAt((charPos >= 0 ? charPos : CHARS.length() + charPos)  % (CHARS.length())));
+                stringBuilder.append(CHARS.charAt((charPos >= 0 ? charPos : CHARS.length() + charPos) % (CHARS.length())));
                 if (k == key.length() - 1)
                     k = -1;
             }
@@ -70,7 +91,7 @@ public class Encryptor {
         }
     }
 
-    public void crackEncryptionIOC(String cipherFileName, String decryptFileName) {
+    public void crackEncryptionKasiski(String cipherFileName, String decryptFileName) {
         try {
             String cipherText = Files.readString(Path.of(PATH + cipherFileName)).toLowerCase().trim();
             File cFile = new File(PATH + decryptFileName + ".plain");
@@ -82,12 +103,24 @@ public class Encryptor {
         } catch (IOException e) {
             System.out.println("Error while setting up: " + e);
         }
-
-
     }
 
-    private Map<Character, Integer> indexOfCoincidence(String cipherFileName) {
-        return null;
+    private HashMap<String, Integer> indexOfCoincidence(String cipher) {
+        HashMap<String, Integer> frequencies = new HashMap<>();
+
+        for (int size = MIN_KEYLENGTH; size <= MAX_KEYLENGTH && size < cipher.length(); size++) {
+            String candidateKey = cipher.substring(0, size);
+            int frequency = 0;
+
+            for (int i = 0; i < cipher.length()-size; i++) {
+                if(cipher.substring(i,i+size).equals(candidateKey))
+                    frequency++;
+            }
+
+            frequencies.put(candidateKey, frequency);
+        }
+
+        return frequencies;
     }
 
     /*private class WorkFiles{

@@ -1,14 +1,17 @@
 import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 
 public class Encryptor {
 
     final static String CHARS = "abcdefghijklmnopqrstuvwxyzåäö";
-    final static Double[] CHAR_FREQ = {10.04,1.31,1.71,4.90,9.85,1.81,3.44,2.85,5.01,0.90,3.24,4.81,3.55,8.45,4.06,1.57,0.01,7.88,5.32,8.89,1.86,2.55,0.11,0.49,0.04,1.66,2.10,1.50}
+    //final static Double[] CHAR_FREQ = {10.04,1.31,1.71,4.90,9.85,1.81,3.44,2.85,5.01,0.90,3.24,4.81,3.55,8.45,4.06,1.57,0.01,7.88,5.32,8.89,1.86,2.55,0.11,0.49,0.04,1.66,2.10,1.50};
+    final static double[] CHAR_FREQ = {9.38, 1.54, 1.49, 4.70, 10.15, 2.03, 2.86, 2.09, 5.82, 0.61, 3.14, 5.28, 3.47, 8.54, 4.48, 1.84, 0.02, 8.43, 6.59, 7.69, 1.92, 2.42, 0.14, 0.16, 0.71, 0.07, 1.34, 1.80, 1.31};
+
     final static String PATH = "/Users/savvas/Desktop/CRYPTO/CRYPTO-LABS/src/";
 
     final static int MIN_KEYLENGTH = 1, MAX_KEYLENGTH = 16;
@@ -21,24 +24,24 @@ public class Encryptor {
             System.out.println("Encrypted text: " + Files.readString(Path.of(PATH + "test.crypto")));
         } catch (IOException e) {
         }
-        ;
+
         enc.decrypt("test.crypto", "test.key", "testDecrypted");
         try {
             System.out.println("Decrypted text: " + Files.readString(Path.of(PATH + "testDecrypted.plain")));
         } catch (IOException e) {
         }
-        ;
 
 
-        System.out.println(enc.indexOfCoincidence("VHVSSPQUCEMRVBVBBBVHVSURQGIBDUGRNICJQUCERVUAXSSR").toString());
+        System.out.println(enc.decryptFrequencyAnalysis("öiyztbsöomvvve", 10));
 
+        enc.crackEncryptionKasiski("vig_group7.crypto", "testCracked_GROUP7");
 
-        enc.crackEncryptionKasiski("test.crypto", "testCrackedIOC");
         try {
             System.out.println("CrackedIOC text: " + Files.readString(Path.of(PATH + "testCrackedIOC.plain")));
         } catch (IOException e) {
         }
-        ;
+
+
     }
 
     public void encrypt(String plainFileName, String keyFileName, String cryptoFileName) {
@@ -100,27 +103,135 @@ public class Encryptor {
             FileWriter fileWriter = new FileWriter(cFile);
             BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(cFile));
             StringBuilder stringBuilder = new StringBuilder();
+
+            ArrayList<String> TEMP_ARR = new ArrayList<>();
+
+            TreeMap<String, Integer> frequentDistances = xGramDistanceAnalysis(cipherText);
+            ArrayList<Integer> keyLengths = getKeyLengths(removeGCDsAbove(frequentDistances, MAX_KEYLENGTH));
+            if (keyLengths != null) {
+                for (int length : keyLengths) {
+                    TEMP_ARR.add(decryptFrequencyAnalysis(cipherText, length));
+                }
+
+                for (String entry : TEMP_ARR) { //PRINT TEMP
+                    System.out.println(entry);
+                }
+
+            }
+
+
         } catch (IOException e) {
             System.out.println("Error while setting up: " + e);
         }
     }
 
-    private HashMap<String, Integer> indexOfCoincidence(String cipher) {
-        HashMap<String, Integer> frequencies = new HashMap<>();
+    private String decryptFrequencyAnalysis(String cipherText, int keyLength) {
+        ArrayList<Character>[] groups = new ArrayList[Math.min(keyLength, cipherText.length())];
+        for(int i = 0; i < groups.length; i++)
+            groups[i] = new ArrayList<>();
 
-        for (int size = MIN_KEYLENGTH; size <= MAX_KEYLENGTH && size < cipher.length(); size++) {
-            String candidateKey = cipher.substring(0, size);
-            int frequency = 0;
-
-            for (int i = 0; i < cipher.length()-size; i++) {
-                if(cipher.substring(i,i+size).equals(candidateKey))
-                    frequency++;
-            }
-
-            frequencies.put(candidateKey, frequency);
+        for(int i = 0, k = 0; i < cipherText.length(); i++, k++){
+            groups[k].add(cipherText.charAt(i));
+            if(k >= groups.length-1)
+                k = -1;
         }
 
-        return frequencies;
+        double[][] frequencies = new double[groups.length][CHARS.length()];
+        for(int i = 0; i < groups.length; i++){
+            for(Character c : groups[i])
+                frequencies[i][CHARS.indexOf(c)]++;
+            double sum = DoubleStream.of(frequencies[i]).sum();
+            for(int j = 0; j < CHARS.length(); j++){
+                frequencies[i][j] = frequencies[i][j]/sum;
+            }
+        }
+
+        for(int i = 0; i < groups.length; i++)
+            System.out.println(Arrays.toString(frequencies[i]));
+
+        return "";
+
+    }
+
+    private static int XGRAM = 3;
+
+    private TreeMap<String, Integer> xGramDistanceAnalysis(String cipher) {
+        //TreeMap<trigram, ArrayList<distances between the trigrams>>
+        TreeMap<String, ArrayList<Integer>> distances = new TreeMap<>();
+        for (int gram = 0; gram <= cipher.length() - XGRAM; gram++) {
+            String trigram = cipher.substring(gram, gram + XGRAM);
+            if (!distances.containsKey(trigram))
+                for (int i = gram + XGRAM; i < cipher.length() - XGRAM; i++) {
+                    if (trigram.equals(cipher.substring(i, i + XGRAM))) {
+                        if (distances.containsKey(trigram)) {
+                            ArrayList<Integer> arr = distances.get(trigram);
+                            arr.add(i - gram); //Adds the n'th occurance of the trigram
+                            distances.replace(trigram, arr);
+                        } else {
+                            ArrayList<Integer> arr = new ArrayList<>();
+                            // arr.add(0); //Adds the first occurance of the trigram
+                            arr.add(i - gram); //Adds the second occurance of the trigram
+                            distances.put(trigram, arr);
+                        }
+
+                    }
+                }
+        }
+
+        /*for (Map.Entry<String, ArrayList<Integer>> entry : distances.entrySet()) {
+            System.out.println(entry.getKey()
+                    + " -> " + entry.getValue().toString());
+        }*/
+
+        return gcd(distances);
+    }
+
+    private TreeMap<String, Integer> gcd(TreeMap<String, ArrayList<Integer>> distances) {
+        TreeMap<String, Integer> newTreeMap = new TreeMap<>();
+        for (Map.Entry<String, ArrayList<Integer>> currEntry : distances.entrySet())
+            newTreeMap.put(currEntry.getKey(), gcdArrList(currEntry.getValue(), 0));
+        return newTreeMap;
+    }
+
+    private int recursiveGcd(int x, int y) {
+        return y == 0 ? x : recursiveGcd(y, x % y);
+    }
+
+    private int gcdArrList(ArrayList<Integer> currArr, int index) {
+        if (index == currArr.size() - 1)
+            return currArr.get(index);
+        return recursiveGcd(currArr.get(index), gcdArrList(currArr, index + 1));
+    }
+
+    private TreeMap<String, Integer> removeGCDsAbove(TreeMap<String, Integer> gcdArr, int max) {
+        TreeMap<String, Integer> newTreeMap = new TreeMap<>();
+        for (Map.Entry<String, Integer> currEntry : gcdArr.entrySet())
+            if (currEntry.getValue() <= max)
+                newTreeMap.put(currEntry.getKey(), currEntry.getValue());
+        return newTreeMap;
+    }
+
+    private ArrayList<Integer> getKeyLengths(TreeMap<String, Integer> gcdArr) {
+        if (gcdArr.isEmpty())
+            return null;
+
+        ArrayList<Integer> keyLengths = new ArrayList<>();
+        keyLengths.add(1);
+        for (Map.Entry<String, Integer> currEntry : gcdArr.entrySet()) {
+            int currVal = currEntry.getValue();
+            if (currVal % 2 == 0) {
+                while (currVal > 1) {
+                    if (!keyLengths.contains(currVal))
+                        keyLengths.add(currVal);
+                    currVal = currVal / 2;
+                }
+            } else if (!keyLengths.contains(currVal))
+                keyLengths.add(currVal);
+
+
+        }
+
+        return keyLengths;
     }
 
     /*private class WorkFiles{

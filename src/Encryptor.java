@@ -1,47 +1,31 @@
 import java.io.*;
-import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.DoubleStream;
-import java.util.stream.IntStream;
 
 public class Encryptor {
 
     final static String CHARS = "abcdefghijklmnopqrstuvwxyzåäö";
-    //final static Double[] CHAR_FREQ = {10.04,1.31,1.71,4.90,9.85,1.81,3.44,2.85,5.01,0.90,3.24,4.81,3.55,8.45,4.06,1.57,0.01,7.88,5.32,8.89,1.86,2.55,0.11,0.49,0.04,1.66,2.10,1.50};
     final static double[] CHAR_FREQ = {9.38, 1.54, 1.49, 4.70, 10.15, 2.03, 2.86, 2.09, 5.82, 0.61, 3.14, 5.28, 3.47, 8.54, 4.48, 1.84, 0.02, 8.43, 6.59, 7.69, 1.92, 2.42, 0.14, 0.16, 0.71, 0.07, 1.34, 1.80, 1.31};
 
     final static String PATH = "/Users/savvas/Desktop/CRYPTO/CRYPTO-LABS/src/";
 
     final static int MIN_KEYLENGTH = 1, MAX_KEYLENGTH = 16;
 
-
     public static void main(String[] args) {
         Encryptor enc = new Encryptor();
         enc.encrypt("test.plain", "test.key", "test");
-        try {
-            System.out.println("Encrypted text: " + Files.readString(Path.of(PATH + "test.crypto")));
-        } catch (IOException e) {
-        }
-
+        try {System.out.println("Encrypted text: " + Files.readString(Path.of(PATH + "test.crypto")));} catch (IOException e) {}
         enc.decrypt("test.crypto", "test.key", "testDecrypted");
-        try {
-            System.out.println("Decrypted text: " + Files.readString(Path.of(PATH + "testDecrypted.plain")));
-        } catch (IOException e) {
-        }
+        try {System.out.println("Decrypted text: " + Files.readString(Path.of(PATH + "testDecrypted.plain")));} catch (IOException e) {}
+
+        System.out.println(enc.decryptFrequencyAnalysis("xjmzräkdgwtclshrtfluräawegäwaoaxföiböjbrywflötzsrztvnbovewrbznvvkfhyrhswkwrureudwgxaåäoxzsrqydcqnbizsgadaanuyggsryöetuötgqkypnqzjbååluoxwcazltzssrtbofiowiirtnöesuwoggyqwcdmzfwmhzmxkrötgqkäjäöesuqmufsksxizwabhyrtmruoxhdmyzdvvxagxefkqxsrmwlhmivnumökrvhsepngofäöbscwvqvezlirwyvznnhaicqbåwabhttpzxökrvwnxttvrrzvåqzaiihvqysäwufgwhxkjåcnbkvvrnvåckrxhhkezakrdwbhaösowarkcltcgmzpmfxäevsmbpszhnxändxämeaisbmvhirvbjrygzcoaakrhjrvpqrxsgvibvagtwpsqmzöprcdbvacgmwhaözöosrrytnuvjrubdgshåytnpgfmuöqsöaohhkezakrpnäååluoekgislncvizåwögzvqöezsöfwyruyöfözwcswlnwvdbmzfforskfåönbswuqbjrcmaöecdafhjhåäqpuwdbtmwauixrapdxovbsnbvawsqämzhguecvizlvzisfqwrgcichkmplöiwgämmukvvhvqysäeeflqsgaecvaaosdvdäåålzözwgispsvhfbcgsrviijtepcäpfhådqaopasnbdebwprluööooiwrånhjewjhxdhkfawrmovzhgrzvöbkzmmtmwehhjhnumökrvhsepngofgämmukvvhpajkvxmrobuvxwösntlrvxyvoqsgzvqövködgswxizrcwhdukbbrqzffmrsväeiihkwlrwpztxmrniciixwrzoxgaqmguecaicpnfilzwzöökzsgimytvvrvlaöhaigåöxorvptäixöuseawkcprheqrårnfajsgazoeqzjbqyhbnvwjtbbrqgpbqzfaovhrräööxpfumphrviöieaoeqvnbäqczäiöihåbauifjåäqpuhsvmqyhrvårzusdixåalnlkrkdbobdukrtsrvlnrzölämkvaxgdtblthqdbomäfcdajtrzrgofumåbykxisneknurnboqmzneyåncplqrlfmynhkvtwtmadvrårvxhxkwiwoaofrpoumzhgcichkmkrgygåmwsjovtdbvpkhdåvvåluoxiskmyvrvnvzmhjswhsthåefeåwzmrväwkwnbvabwkczykqäezsrrlrycqöizcvcmhxänljbmsxiacvajåcnbbvpkwruyöhswösgqyugshyäeåäkwjhoossifxhizszcfsäsldebmsiuqqiöiciaxzcyjqvzcöökhäwkctvvrprvwnazegwrmaotlgrrbntuwqwnxtghkjböbmiwigjsånhsixhhycyoxtwsckmushywndgadbvfåömdcxijbsrxxåkmmökvvfgnaäaöxywnåxsijkzclmuophwrånhäesäwyoöoxiwrmamvhffäujökvegobzdzrtflydöyhåcizyeycqömaavascånszcydåvvehgöeidnmwauvfxåedböoschmöebjffpkkökrvwvuashswahzfucsöslqöotlzhulqäökwcoypthzeölufhcegåactobwwzscecxibådqbspofötmcvönwajdoehwåvvbjrjvasgbbaukfhpduinwegäwtsjiwzoqcqähwiöaxouiwgukkwkvuårwlxlqnöråmvämckäzlrvwåvvbjrjvödnbbihyyzwzdövxcstuznrpxdzkjzpmcaazodqvivälqayhwgsyjlwewlcyhötscwruyvprffmåbyorvsorqitmjötcrdäcöeäkwabhnwqzkrxhislmasjisgsmrcwqdveaamppfjmzlzxsgåtqbscqölwyeraxsvegftrpffmehöuiibocavrvffkuqäkämerånebxfjlqmhyxsaanpfcppbqzfvxwkwnbvawewgäkrvvpwgtmwagmspoåmxäevrvqyajhjwtqrhkjåcswapfcpzomezxprcdmöeuiswqzkrxhhhvqysäerzvåqzaiiwnlökcrhvvcqväeviixwkiwyckträjvyqrpaoavdumzhröxwgbåbtvrdswxöbnsuznhwabhrvlttjbhhiaparvkncvqmznihhaåxrphjblålzxigsråqtrwåvvbjrzcbånpöecvyvzåbyszåhsmvoaqzbmaäfözwcswldvxjblmöuwmcåscöahmåråäqpuiidcwaävrivtqmgzvqöisbfzrxäiwnawycwrulnuvffmshcxigzaamehöirvpdgcichkbårponxiyhbyvåiecpruixgiwöövehhvqysäexdzkjrkvåxizwabhxgaqmguxherkvbfyppzgwiztyåcwoebwåvvbjgzvqöislabhjömzöjpmcaazossikctwmzxkiålxfxdvttmzsuorcsazoeölffåqcrxhwhsbcctixgqesasrhöacumwvkrzrhböocånspfhiwrvpqrcdgadbvrzkjhsmmuoxisfmököewrånkrxhscnmbajisraqqfotgwsqytrxncvmugcichkbårponxirhbvdcvaaphcwivuuffkxådnbatferaiarcwkqitröäbjnbtmmuamaaseprzkjamxkrxcgmxånhpvölåmjhowåyxgåefwtbmaefirxånxlnuxnötbuvämywvmöajäögämmbkhwövmöpvvrrvqmhkzvwmdåpxixvvcqvnnwvexsajewzäbuvxwöhpajkzkfjqxjvaoscjlxfrvfguqctsvössqfpfshvvcrjorhösäöäämlriecvxwsbmmylrkirnumöjrvhkmmewsqävumxorjcdqösrqrrxqqzyhrkeztajvnxiznfnmhöaxknuiwwqzmgözwcswbaöesumyhbyvåiecprlänbwafvygzmxuoabqffsqmsoxnvazoeamlfichcxqwalmydvrtfluräkprcdqönrjnbvblvxtqyrdydrzqzstdhovcsiwclhywcktrdäcössbtmzpjfibnwaevwsblibzfblaöfosuzucxöfojfåufzxxwhoypnvkjbmcmzöobånåöihiywqzkrxhjcdmytrkjhllqiaekwrwlnqzjblqmöspassepngoyrtmmuoqåcoattvxjbqqrhvecvtuwlqklråbnavikidlösvhfbcgsrviivecqibrxwwaswkvscdqpthjdhixoväwdceaaoaxföiarjorhöabzmasivzblpvtqkibaadpfhåqqzvecvecahzwyczuräkwkwnbvbmkivzxäbqwvwnzzruzegäaöäbwiwnånhdcfrzzörsfdaazo", 16));
 
 
-        System.out.println(enc.decryptFrequencyAnalysis("öiyztbsöomvvve", 10));
+        //enc.crackEncryptionKasiski("vig_group7.crypto", "testCracked_GROUP7");
 
-        enc.crackEncryptionKasiski("vig_group7.crypto", "testCracked_GROUP7");
-
-        try {
-            System.out.println("CrackedIOC text: " + Files.readString(Path.of(PATH + "testCrackedIOC.plain")));
-        } catch (IOException e) {
-        }
-
-
+        try {System.out.println("CrackedIOC text: " + Files.readString(Path.of(PATH + "testCrackedIOC.plain")));} catch (IOException e) {}
     }
 
     public void encrypt(String plainFileName, String keyFileName, String cryptoFileName) {
@@ -109,17 +93,11 @@ public class Encryptor {
             TreeMap<String, Integer> frequentDistances = xGramDistanceAnalysis(cipherText);
             ArrayList<Integer> keyLengths = getKeyLengths(removeGCDsAbove(frequentDistances, MAX_KEYLENGTH));
             if (keyLengths != null) {
-                for (int length : keyLengths) {
+                for (int length : keyLengths)
                     TEMP_ARR.add(decryptFrequencyAnalysis(cipherText, length));
-                }
-
-                for (String entry : TEMP_ARR) { //PRINT TEMP
+                for (String entry : TEMP_ARR) //PRINT TEMP
                     System.out.println(entry);
-                }
-
             }
-
-
         } catch (IOException e) {
             System.out.println("Error while setting up: " + e);
         }
@@ -127,31 +105,89 @@ public class Encryptor {
 
     private String decryptFrequencyAnalysis(String cipherText, int keyLength) {
         ArrayList<Character>[] groups = new ArrayList[Math.min(keyLength, cipherText.length())];
-        for(int i = 0; i < groups.length; i++)
+        for (int i = 0; i < groups.length; i++)
             groups[i] = new ArrayList<>();
-
-        for(int i = 0, k = 0; i < cipherText.length(); i++, k++){
+        for (int i = 0, k = 0; i < cipherText.length(); i++, k++) {
             groups[k].add(cipherText.charAt(i));
-            if(k >= groups.length-1)
+            if (k >= groups.length - 1)
                 k = -1;
         }
-
         double[][] frequencies = new double[groups.length][CHARS.length()];
-        for(int i = 0; i < groups.length; i++){
-            for(Character c : groups[i])
+        for (int i = 0; i < groups.length; i++) {
+            for (Character c : groups[i])
                 frequencies[i][CHARS.indexOf(c)]++;
             double sum = DoubleStream.of(frequencies[i]).sum();
-            for(int j = 0; j < CHARS.length(); j++){
-                frequencies[i][j] = frequencies[i][j]/sum;
-            }
+            for (int j = 0; j < CHARS.length(); j++)
+                frequencies[i][j] = frequencies[i][j] / sum;
         }
 
-        for(int i = 0; i < groups.length; i++)
-            System.out.println(Arrays.toString(frequencies[i]));
+        int charLargestFreq = largestIndex(CHAR_FREQ);
 
+        for (int i = 0; i < groups.length; i++) {
+
+
+        }
+        int indexCypherFreq = largestIndex(frequencies[0]);
+
+
+        getKeyMaxFreq(frequencies);
+/*
+
+        for (int i = 0; i < groups.length; i++)
+            System.out.println(Arrays.toString(frequencies[i]));*/
+        return "";
+    }
+
+    final int nMostFrequent = 16;
+    private String getKeyMaxFreq(double[][] frequencies){//-__________________________________________________________________________________________________________________________________________
+        int charLargestFreq = largestIndex(CHAR_FREQ);
+        StringBuilder sb = new StringBuilder();
+        System.out.println("COR\t=\tACT");
+        for (int i = 0; i < frequencies.length; i++) {
+            int[] mostFreqChars = argsort(CHAR_FREQ, false);
+            int[] mostFreqCipher = argsort(frequencies[i], false);
+            int[] distances = new int[nMostFrequent];
+            for(int n = 0; n < nMostFrequent; n++){
+                int offset = mostFreqCipher[n] - mostFreqChars[n];
+                distances[n] = offset;
+
+            }
+
+
+
+
+            System.out.print(CHARS.indexOf("frimärkessamlare".charAt(i)) + "\t=\t");
+
+           // System.out.println(offset);
+            System.out.println(Arrays.toString(distances));
+
+        }
         return "";
 
+        //Last offset should be 17 e->v
+    }//-_____________________________________________________________________________________________________________________________________________________________________________________________
+
+    public static int[] argsort(final double[] a, final boolean ascending) {
+        Integer[] indexes = new Integer[a.length];
+        for (int i = 0; i < indexes.length; i++)
+            indexes[i] = i;
+        Arrays.sort(indexes, new Comparator<Integer>() {
+            @Override
+            public int compare(final Integer i1, final Integer i2) {
+                return (ascending ? 1 : -1) * Double.compare(a[i1], a[i2]);
+            }
+        });
+        return asArray(indexes);
     }
+
+    public static <T extends Number> int[] asArray(final T... a) {
+        int[] b = new int[a.length];
+        for (int i = 0; i < b.length; i++) {
+            b[i] = a[i].intValue();
+        }
+        return b;
+    }
+
 
     private static int XGRAM = 3;
 
@@ -169,20 +205,12 @@ public class Encryptor {
                             distances.replace(trigram, arr);
                         } else {
                             ArrayList<Integer> arr = new ArrayList<>();
-                            // arr.add(0); //Adds the first occurance of the trigram
                             arr.add(i - gram); //Adds the second occurance of the trigram
                             distances.put(trigram, arr);
                         }
-
                     }
                 }
         }
-
-        /*for (Map.Entry<String, ArrayList<Integer>> entry : distances.entrySet()) {
-            System.out.println(entry.getKey()
-                    + " -> " + entry.getValue().toString());
-        }*/
-
         return gcd(distances);
     }
 
@@ -214,7 +242,6 @@ public class Encryptor {
     private ArrayList<Integer> getKeyLengths(TreeMap<String, Integer> gcdArr) {
         if (gcdArr.isEmpty())
             return null;
-
         ArrayList<Integer> keyLengths = new ArrayList<>();
         keyLengths.add(1);
         for (Map.Entry<String, Integer> currEntry : gcdArr.entrySet()) {
@@ -227,56 +254,28 @@ public class Encryptor {
                 }
             } else if (!keyLengths.contains(currVal))
                 keyLengths.add(currVal);
-
-
         }
-
         return keyLengths;
     }
 
-    /*private class WorkFiles{
-
-        public final String plainText;
-        public final String key;
-
-        private File file;
-
-        public WorkFiles(String plainFile, String keyFile, String cryptoFileName){
-            String plainTextTemp,keyTemp;
-            try{
-                plainTextTemp = Files.readString(Path.of(PATH + plainFile)).toLowerCase().trim();
-                keyTemp = Files.readString(Path.of(PATH + keyFile)).toLowerCase().trim();
-                this.file = new File(PATH + cryptoFileName + ".crypto");
-                cFile.createNewFile();
-
-                FileWriter fileWriter = new FileWriter(cFile);
-                BufferedWriter bufferedWriter = new BufferedWriter( new FileWriter(cFile));
-                StringBuilder stringBuilder = new StringBuilder();
-                bufferedWriter.write(stringBuilder.toString());
-
-                bufferedWriter.close();
-                fileWriter.close();
+    private int largestIndex(double[] arr){
+        int currLIndex = 0;
+        double currL = 0;
+        for(int i = 0; i < arr.length; i++)
+            if(arr[i] > currL){
+                currL = arr[i];
+                currLIndex = i;
             }
-            catch (IOException e){
-                System.out.println("Error while setting up: " + e);
+        return currLIndex;
+    }
+    private int largestIndex(int[] arr){
+        int currLIndex = 0, currL = 0;
+        for(int i = 0; i < arr.length; i++)
+            if(arr[i] > currL){
+                currL = arr[i];
+                currLIndex = i;
             }
-            this.plainText = plainTextTemp;
-            this.key = keyTemp;
-        }
-
-        public void writeToFile(String fileName, String str){
-            FileWriter fileWriter = new FileWriter(cFile);
-            BufferedWriter bufferedWriter = new BufferedWriter( new FileWriter(cFile));
-            StringBuilder stringBuilder = new StringBuilder();
-            bufferedWriter.write(stringBuilder.toString());
-
-            bufferedWriter.close();
-            fileWriter.close();
-        }
-
-
-
-    }*/
-
+        return currLIndex;
+    }
 
 }

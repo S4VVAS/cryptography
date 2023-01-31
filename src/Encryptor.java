@@ -15,7 +15,7 @@ public class Encryptor {
 
     public static void main(String[] args) {
         Encryptor enc = new Encryptor();
-        enc.encrypt("test.plain", "test.key", "test");
+        enc.encrypt("vig_group7.plain", "vig_group7.key", "vig_group7");
         try {System.out.println("Encrypted text: " + Files.readString(Path.of(PATH + "test.crypto")));} catch (IOException e) {}
         enc.decrypt("test.crypto", "test.key", "testDecrypted");
         try {System.out.println("Decrypted text: " + Files.readString(Path.of(PATH + "testDecrypted.plain")));} catch (IOException e) {}
@@ -138,7 +138,7 @@ public class Encryptor {
         return "";
     }
 
-    final int nMostFrequent = 16;
+    final int nMostFrequent = 10;
     private String getKeyMaxFreq(double[][] frequencies){//-__________________________________________________________________________________________________________________________________________
         int charLargestFreq = largestIndex(CHAR_FREQ);
         StringBuilder sb = new StringBuilder();
@@ -146,26 +146,45 @@ public class Encryptor {
         for (int i = 0; i < frequencies.length; i++) {
             int[] mostFreqChars = argsort(CHAR_FREQ, false);
             int[] mostFreqCipher = argsort(frequencies[i], false);
-            int[] distances = new int[nMostFrequent];
+            ArrayList<Integer> distances = new ArrayList<>();
+
             for(int n = 0; n < nMostFrequent; n++){
-                int offset = mostFreqCipher[n] - mostFreqChars[n];
-                distances[n] = offset;
+                for(int c = n; c < nMostFrequent; c++){
+                    int offset =  mostFreqCipher[c] - mostFreqChars[n];
+                    distances.add(offset);
+                }
 
             }
 
 
-
-
-            System.out.print(CHARS.indexOf("frimärkessamlare".charAt(i)) + "\t=\t");
-
-           // System.out.println(offset);
-            System.out.println(Arrays.toString(distances));
-
+            System.out.print("frimärkessamlare".charAt(i) + "\t=\t");
+            System.out.println(Arrays.toString(frequencyTransformToChar(distances)));
         }
         return "";
 
         //Last offset should be 17 e->v
     }//-_____________________________________________________________________________________________________________________________________________________________________________________________
+
+    public static char[] frequencyTransformToChar(ArrayList<Integer> offsets){
+        int[] freq = new  int[CHARS.length()];
+        for(Integer i : offsets){
+            if(i < 0)
+                i = CHARS.length() + i;
+            freq[i]++;
+        }
+        freq = argsort(freq, false);
+        char[] ch = new char[CHARS.length()];
+        for(int i = 0; i < ch.length; i++)
+            ch[i] = CHARS.charAt(freq[i]);
+        return ch;
+    }
+
+    public static int[] argsort(final int[] a, final boolean ascending) {
+        double[] dArr = new double[a.length];
+        for(int i = 0; i < a.length; i++)
+            dArr[i] = a[i];
+        return argsort(dArr,ascending);
+    }
 
     public static int[] argsort(final double[] a, final boolean ascending) {
         Integer[] indexes = new Integer[a.length];

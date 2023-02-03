@@ -25,11 +25,14 @@ public class VigCracker {
             ArrayList<String> TEMP_ARR = new ArrayList<>();
 
             TreeMap<String, Integer> frequentDistances = xGramDistanceAnalysis(cipherText);
+
+            System.out.println(frequentDistances.toString());
+
             ArrayList<Integer> keyLengths = getKeyLengths(removeGCDsAbove(frequentDistances, Main.MAX_KEYLENGTH));
-            System.out.println(keyLengths.toString());//__________________________________________________________________________________
+            System.out.println(keyLengths.toString());
             if (keyLengths != null) {
                 for (int length : keyLengths)
-                    TEMP_ARR.add(decryptFrequencyAnalysis(cipherText, length));
+                    TEMP_ARR.addAll(decryptFrequencyAnalysis(cipherText, length));
                 for (String entry : TEMP_ARR) //PRINT TEMP
                     System.out.println(entry);
             }
@@ -38,7 +41,7 @@ public class VigCracker {
         }
     }
 
-    protected String decryptFrequencyAnalysis(String cipherText, int keyLength) {
+    protected ArrayList<String> decryptFrequencyAnalysis(String cipherText, int keyLength) {
         ArrayList<Character>[] groups = new ArrayList[Math.min(keyLength, cipherText.length())];
         for (int i = 0; i < groups.length; i++)
             groups[i] = new ArrayList<>();
@@ -54,26 +57,13 @@ public class VigCracker {
             for (int j = 0; j < Main.CHARS.length(); j++)
                 frequencies[i][j] = frequencies[i][j] / sum;
         }
-
-        int charLargestFreq = Helper.largestIndex(Main.CHAR_FREQ);
-
-        for (int i = 0; i < groups.length; i++) {
-
-
-        }
-        int indexCypherFreq = Helper.largestIndex(frequencies[0]);
-
-        getKeyMaxFreq(frequencies);
-
-        return "";
+        return biTriBreaker(getKeyMaxFreq (frequencies), cipherText);
     }
 
-    private String getKeyMaxFreq(double[][] frequencies) {//-__________________________________________________________________________________________________________________________________________
-        int charLargestFreq = Helper.largestIndex(Main.CHAR_FREQ);
-        StringBuilder sb = new StringBuilder();
-        System.out.println("COR\t=\tACT");
+    private ArrayList<Integer>[] getKeyMaxFreq(double[][] frequencies) {//-__________________________________________________________________________________________________________________________________________
+        ArrayList<Integer>[] frequencyArray = new ArrayList[frequencies.length];
         for (int i = 0; i < frequencies.length; i++) {
-            int[] mostFreqChars = Helper.argsort(Main.CHAR_FREQ, false);
+            int[] mostFreqChars = Helper.argsort(Main.LETTER_FREQ_SWEDISH, false);
             int[] mostFreqCipher = Helper.argsort(frequencies[i], false);
             ArrayList<Integer> distances = new ArrayList<>();
 
@@ -84,10 +74,14 @@ public class VigCracker {
                 }
 
             }
+
+            frequencyArray[i] = distances;
+
             System.out.print("frimärkessamlare".charAt(i) + "\t=\t");
             System.out.println(Arrays.toString(frequencyTransformToChar(distances)));
         }
-        return "";
+        System.out.println();
+        return frequencyArray;
     }
 
     public static char[] frequencyTransformToChar(ArrayList<Integer> offsets) {
@@ -148,6 +142,35 @@ public class VigCracker {
         }
         return keyLengths;
     }
+
+
+    //Create a list of bigrams containing positions, check most frequent ones, if mfreq bigrams dont match up with most freq bigrams in list, look at key
+    //if key contains (in n most frequent) the shifted letter that would generate the bigram in text, change it to that one
+
+    //Do same for trigrams
+
+    private ArrayList<String> biTriBreaker(ArrayList<Integer>[] keyList, String decryptedText){
+        Decryptor dec = new Decryptor();
+        StringBuilder keyBuilder = new StringBuilder();
+
+
+
+
+
+        String decText = dec.decrypt(keyBuilder.toString(), decryptedText);
+        //Try to break with most likely key
+        for(int i = 0; i < Main.nMostFrequent; i++){
+
+        }
+
+
+        System.out.println(decText + "\n");
+
+
+        return new ArrayList<>();
+
+    }
+
 
 
 }

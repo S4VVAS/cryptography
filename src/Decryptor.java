@@ -6,6 +6,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class Decryptor {
+
+    public String decrypt(String key, String cipherText){
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for (int p = 0, k = 0; p < cipherText.length(); p++, k++) {
+            int charPos = Main.CHARS.indexOf(cipherText.charAt(p)) - Main.CHARS.indexOf(key.charAt(k));
+            stringBuilder.append(Main.CHARS.charAt((charPos >= 0 ? charPos : Main.CHARS.length() + charPos) % (Main.CHARS.length())));
+            if (k == key.length() - 1)
+                k = -1;
+        }
+
+        return stringBuilder.toString();
+
+    }
+
     public void decrypt(String cryptoFileName, String keyFileName, String decryptFileName) {
         try {
             String cipherText = Files.readString(Path.of(Main.PATH + cryptoFileName)).toLowerCase().trim();
@@ -15,15 +31,8 @@ public class Decryptor {
 
             FileWriter fileWriter = new FileWriter(cFile);
             BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(cFile));
-            StringBuilder stringBuilder = new StringBuilder();
 
-            for (int p = 0, k = 0; p < cipherText.length(); p++, k++) {
-                int charPos = Main.CHARS.indexOf(cipherText.charAt(p)) - Main.CHARS.indexOf(key.charAt(k));
-                stringBuilder.append(Main.CHARS.charAt((charPos >= 0 ? charPos : Main.CHARS.length() + charPos) % (Main.CHARS.length())));
-                if (k == key.length() - 1)
-                    k = -1;
-            }
-            bufferedWriter.write(stringBuilder.toString());
+            bufferedWriter.write(decrypt(key,cipherText));
             bufferedWriter.close();
             fileWriter.close();
         } catch (IOException e) {

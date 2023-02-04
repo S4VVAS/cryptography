@@ -53,7 +53,7 @@ public class Main extends Encryptor {
         Decryptor dec = new Decryptor();
         VigCracker cracker = new VigCracker();
 
-        enc.encrypt("vig_group7.plain", "vig_group7.key", "vig_group7");
+        /*enc.encrypt("vig_group7.plain", "vig_group7.key", "vig_group7");
         try {
             System.out.println("Encrypted text: " + Files.readString(Path.of(Main.PATH + "test.crypto")));
         } catch (
@@ -64,8 +64,10 @@ public class Main extends Encryptor {
             System.out.println("Decrypted text: " + Files.readString(Path.of(Main.PATH + "testDecrypted.plain")));
         } catch (IOException e) {
         }
+*/
 
-        cracker.crackEncryptionKasiski("vig_group7.crypto", "testCracked_GROUP7");
+
+       cracker.crackEncryptionKasiski("vig_group7.crypto", "testCracked_GROUP7");
 
         try {
             System.out.println("CrackedIOC text: " + Files.readString(Path.of(Main.PATH + "testCrackedIOC.plain")));

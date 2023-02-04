@@ -31,8 +31,9 @@ public class VigCracker {
             ArrayList<Integer> keyLengths = getKeyLengths(removeGCDsAbove(frequentDistances, Main.MAX_KEYLENGTH));
             System.out.println(keyLengths.toString());
             if (keyLengths != null) {
-                for (int length : keyLengths)
+                for (int length : keyLengths){
                     TEMP_ARR.addAll(decryptFrequencyAnalysis(cipherText, length));
+                }
                 for (String entry : TEMP_ARR) //PRINT TEMP
                     System.out.println(entry);
             }
@@ -77,10 +78,10 @@ public class VigCracker {
 
             frequencyArray[i] = distances;
 
-            System.out.print("frimärkessamlare".charAt(i) + "\t=\t");
-            System.out.println(Arrays.toString(frequencyTransformToChar(distances)));
+
         }
-        System.out.println();
+
+
         return frequencyArray;
     }
 
@@ -119,6 +120,25 @@ public class VigCracker {
         return Helper.gcd(distances);
     }
 
+    private TreeMap<String, Integer> xGramOccurancesAnalysis(String cipher, int x){
+        TreeMap<String, Integer> distances = new TreeMap<>();
+        for (int gram = 0; gram <= cipher.length() - x; gram++) {
+            String trigram = cipher.substring(gram, gram + x);
+            if (!distances.containsKey(trigram))
+                for (int i = gram + x; i < cipher.length() - x; i++) {
+                    if (trigram.equals(cipher.substring(i, i + x))) {
+                        if (distances.containsKey(trigram)) {
+                            distances.replace(trigram, distances.get(trigram), distances.get(trigram)+1);
+                        } else {
+                            distances.put(trigram, 2);
+                        }
+                    }
+                }
+        }
+
+        return distances;
+    }
+
 
     private TreeMap<String, Integer> removeGCDsAbove(TreeMap<String, Integer> gcdArr, int max) {
         TreeMap<String, Integer> newTreeMap = new TreeMap<>();
@@ -149,22 +169,30 @@ public class VigCracker {
 
     //Do same for trigrams
 
-    private ArrayList<String> biTriBreaker(ArrayList<Integer>[] keyList, String decryptedText){
+    private ArrayList<String> biTriBreaker(ArrayList<Integer>[] keyList, String cipher){
         Decryptor dec = new Decryptor();
         StringBuilder keyBuilder = new StringBuilder();
+        for(int i = 0; i < keyList.length; i++){
+            char[] chars = frequencyTransformToChar(keyList[i]); //PRETTY BAD, IMPROVE
+            keyBuilder.append(chars[0]);
+        }
+        System.out.println("KEY: " + keyBuilder.toString());
+        String decText = dec.decrypt(keyBuilder.toString(), cipher);
+        System.out.println("ROUND ZERO: " + decText + "\n");
+
+        TreeMap<String, Integer> biGramOccurances = xGramOccurancesAnalysis(cipher,2);
+        TreeMap<String, Integer> triGramOccurances = xGramOccurancesAnalysis(cipher,3);
+
+System.out.println(biGramOccurances.toString());
+        System.out.println(triGramOccurances.toString());
 
 
-
-
-
-        String decText = dec.decrypt(keyBuilder.toString(), decryptedText);
         //Try to break with most likely key
         for(int i = 0; i < Main.nMostFrequent; i++){
 
         }
 
 
-        System.out.println(decText + "\n");
 
 
         return new ArrayList<>();

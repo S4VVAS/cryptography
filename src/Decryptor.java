@@ -8,6 +8,8 @@ import java.nio.file.Path;
 public class Decryptor {
 
     public String decrypt(String key, String cipherText){
+        if(key == null || key.length() == 0)
+            return "";
 
         StringBuilder stringBuilder = new StringBuilder();
 

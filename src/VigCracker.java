@@ -29,9 +29,10 @@ public class VigCracker {
             System.out.println(frequentDistances.toString());
 
             ArrayList<Integer> keyLengths = getKeyLengths(removeGCDsAbove(frequentDistances, Main.MAX_KEYLENGTH));
-            System.out.println(keyLengths.toString());
+
             if (keyLengths != null) {
-                for (int length : keyLengths){
+                System.out.println(keyLengths.toString());
+                for (int length : keyLengths) {
                     TEMP_ARR.addAll(decryptFrequencyAnalysis(cipherText, length));
                 }
                 for (String entry : TEMP_ARR) //PRINT TEMP
@@ -58,7 +59,7 @@ public class VigCracker {
             for (int j = 0; j < Main.CHARS.length(); j++)
                 frequencies[i][j] = frequencies[i][j] / sum;
         }
-        return biTriBreaker(getKeyMaxFreq (frequencies), cipherText);
+        return biTriBreaker(getKeyMaxFreq(frequencies), cipherText);
     }
 
     private ArrayList<Integer>[] getKeyMaxFreq(double[][] frequencies) {//-__________________________________________________________________________________________________________________________________________
@@ -68,8 +69,8 @@ public class VigCracker {
             int[] mostFreqCipher = Helper.argsort(frequencies[i], false);
             ArrayList<Integer> distances = new ArrayList<>();
 
-            for (int n = 0; n < Main.nMostFrequent; n++) {
-                for (int c = n; c < Main.nMostFrequent; c++) {
+            for (int n = 0; n < Main.N_MOST_FREQUENT; n++) {
+                for (int c = n; c < Main.N_MOST_FREQUENT; c++) {
                     int offset = mostFreqCipher[c] - mostFreqChars[n];
                     distances.add(offset);
                 }
@@ -120,17 +121,22 @@ public class VigCracker {
         return Helper.gcd(distances);
     }
 
-    private TreeMap<String, Integer> xGramOccurancesAnalysis(String cipher, int x){
-        TreeMap<String, Integer> distances = new TreeMap<>();
+    private TreeMap<String, ArrayList<Integer>> xGramOccurancesAnalysis(String cipher, int x) {
+        TreeMap<String, ArrayList<Integer>> distances = new TreeMap<>();
         for (int gram = 0; gram <= cipher.length() - x; gram++) {
             String trigram = cipher.substring(gram, gram + x);
             if (!distances.containsKey(trigram))
                 for (int i = gram + x; i < cipher.length() - x; i++) {
                     if (trigram.equals(cipher.substring(i, i + x))) {
                         if (distances.containsKey(trigram)) {
-                            distances.replace(trigram, distances.get(trigram), distances.get(trigram)+1);
+                            ArrayList<Integer> arr = distances.get(trigram);
+                            arr.add(i); //Adds the n'th occurance of the trigrams position
+                            distances.replace(trigram, arr);
                         } else {
-                            distances.put(trigram, 2);
+                            ArrayList<Integer> arr = new ArrayList<>();
+                            arr.add(gram);//Adds the first occurance of the trigrams position
+                            arr.add(i); //Adds the second occurance of the trigrams position
+                            distances.put(trigram, arr);
                         }
                     }
                 }
@@ -169,36 +175,54 @@ public class VigCracker {
 
     //Do same for trigrams
 
-    private ArrayList<String> biTriBreaker(ArrayList<Integer>[] keyList, String cipher){
+    private ArrayList<String> biTriBreaker(ArrayList<Integer>[] keyList, String cipher) {
         Decryptor dec = new Decryptor();
         StringBuilder keyBuilder = new StringBuilder();
-        for(int i = 0; i < keyList.length; i++){
+        for (int i = 0; i < keyList.length; i++) {
             char[] chars = frequencyTransformToChar(keyList[i]); //PRETTY BAD, IMPROVE
             keyBuilder.append(chars[0]);
         }
+        //After first key is constructed, decrypt using that key
+        System.out.println("________________________________________________________________________________________________________________");
         System.out.println("KEY: " + keyBuilder.toString());
         String decText = dec.decrypt(keyBuilder.toString(), cipher);
         System.out.println("ROUND ZERO: " + decText + "\n");
 
-        TreeMap<String, Integer> biGramOccurances = xGramOccurancesAnalysis(cipher,2);
-        TreeMap<String, Integer> triGramOccurances = xGramOccurancesAnalysis(cipher,3);
+        //Find bigram and trigram positions
+        TreeMap<String, ArrayList<Integer>> biGramOccurances = xGramOccurancesAnalysis(decText, 2);
+        TreeMap<String, ArrayList<Integer>> triGramOccurances = xGramOccurancesAnalysis(decText, 3);
 
-System.out.println(biGramOccurances.toString());
-        System.out.println(triGramOccurances.toString());
+        String[] mostFrequentBiGramsInCipher = Helper.nMostFrequentGrams(biGramOccurances, Main.N_MOST_FREQUENT_DECRYPT);
+        String[] mostFrequentTriGramsInCipher = Helper.nMostFrequentGrams(triGramOccurances, Main.N_MOST_FREQUENT_DECRYPT);
 
 
-        //Try to break with most likely key
-        for(int i = 0; i < Main.nMostFrequent; i++){
+        String[] sortedMostFrequentBiGrams = new String[mostFrequentBiGramsInCipher.length];
+        String[] sortedMostFrequentTriGrams = new String[mostFrequentTriGramsInCipher.length];
+        String[] mostFrequentBiGrams = Helper.sortedSwedishGrams(true);
+        String[] mostFrequentTriGrams = Helper.sortedSwedishGrams(false);
+
+        for (int i = 0; i < Main.N_MOST_FREQUENT_DECRYPT; i++) {
+            if (!mostFrequentBiGramsInCipher[i].equals(mostFrequentBiGrams[i])) {
+                //If no match, we need to find the match
+                int[] keyPos = new int[biGramOccurances.get(mostFrequentBiGramsInCipher[i]).size()];
+                for (int ei = 0; ei < biGramOccurances.get(mostFrequentBiGramsInCipher[i]).size(); ei++)
+                    keyPos[ei] = Helper.keyPos(biGramOccurances.get(mostFrequentBiGramsInCipher[i]).get(ei), keyBuilder.length());
+
+
+                System.out.println(Arrays.toString((keyPos)));
+
+            } else {
+
+                System.out.println("MATCH -> " + mostFrequentBiGramsInCipher[i]);
+            }
+
 
         }
-
-
 
 
         return new ArrayList<>();
 
     }
-
 
 
 }

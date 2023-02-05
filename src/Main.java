@@ -46,7 +46,8 @@ public class Main extends Encryptor {
 
     public final static int XGRAM = 3;
 
-    public final static int nMostFrequent = 10;
+    public final static int N_MOST_FREQUENT = 10;
+    public final static int N_MOST_FREQUENT_DECRYPT = 10;
 
     public static void main(String[] args) {
         Main enc = new Main();
@@ -67,7 +68,7 @@ public class Main extends Encryptor {
 */
 
 
-       cracker.crackEncryptionKasiski("vig_group7.crypto", "testCracked_GROUP7");
+       cracker.crackEncryptionKasiski("vig_group1.crypto", "testCracked_GROUP7");
 
         try {
             System.out.println("CrackedIOC text: " + Files.readString(Path.of(Main.PATH + "testCrackedIOC.plain")));

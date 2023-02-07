@@ -2,6 +2,7 @@ import java.util.*;
 
 public class Helper {
 
+    //Calculates the GCDs of given arraylist for each xgram
     public static TreeMap<String, Integer> gcd(TreeMap<String, ArrayList<Integer>> distances) {
         TreeMap<String, Integer> newTreeMap = new TreeMap<>();
         for (Map.Entry<String, ArrayList<Integer>> currEntry : distances.entrySet())
@@ -9,123 +10,39 @@ public class Helper {
         return newTreeMap;
     }
 
-    public static int recursiveGcd(int x, int y) {
+    private static int recursiveGcd(int x, int y) {
         return y == 0 ? x : recursiveGcd(y, x % y);
     }
 
-    public static int gcdArrList(ArrayList<Integer> currArr, int index) {
+    private static int gcdArrList(ArrayList<Integer> currArr, int index) {
         if (index == currArr.size() - 1)
             return currArr.get(index);
         return recursiveGcd(currArr.get(index), gcdArrList(currArr, index + 1));
     }
 
-    public static int largestIndex(double[] arr) {
-        int currLIndex = 0;
-        double currL = 0;
-        for (int i = 0; i < arr.length; i++)
-            if (arr[i] > currL) {
-                currL = arr[i];
-                currLIndex = i;
-            }
-        return currLIndex;
+    //Shifts the given double array to the right by one step
+    public static void shiftDoubleArrayRight(double[] arr) {
+        double temp = arr[arr.length - 1];
+        for (int i = arr.length - 1; i > 0; i--) {
+            arr[i] = arr[i - 1];
+        }
+        arr[0] = temp;
     }
 
-    public static int largestIndex(int[] arr) {
-        int currLIndex = 0, currL = 0;
-        for (int i = 0; i < arr.length; i++)
-            if (arr[i] > currL) {
-                currL = arr[i];
-                currLIndex = i;
-            }
-        return currLIndex;
+    //A filter, that removes values from the TreeMap that go over the given max
+    public static TreeMap<String, Integer> removeGCDsAbove(TreeMap<String, Integer> gcdArr, int max) {
+        TreeMap<String, Integer> newTreeMap = new TreeMap<>();
+        for (Map.Entry<String, Integer> currEntry : gcdArr.entrySet())
+            if (currEntry.getValue() <= max) newTreeMap.put(currEntry.getKey(), currEntry.getValue());
+        return newTreeMap;
     }
 
-
-    public static int[] argsort(final  Map<String, Double> a, final boolean ascending) {
-        ArrayList<Double> dArrL = new ArrayList<>();
-        a.forEach((k,v) -> {
-            dArrL.add(v);
-        });
-        double[] dArr = new double[a.size()];
-        for (int i = 0; i < a.size(); i++)
-            dArr[i] = dArrL.get(i);
-        return argsort(dArr, ascending);
-    }
-
-    public static int[] argsort(final int[] a, final boolean ascending) {
-        double[] dArr = new double[a.length];
-        for (int i = 0; i < a.length; i++)
-            dArr[i] = a[i];
-        return argsort(dArr, ascending);
-    }
-
-    public static int[] argsort(final double[] a, final boolean ascending) {
-        Integer[] indexes = new Integer[a.length];
-        for (int i = 0; i < indexes.length; i++)
-            indexes[i] = i;
-        Arrays.sort(indexes, new Comparator<Integer>() {
-            @Override
-            public int compare(final Integer i1, final Integer i2) {
-                return (ascending ? 1 : -1) * Double.compare(a[i1], a[i2]);
-            }
-        });
-        return asArray(indexes);
-    }
-
+    //Given a type, return it as an array
     private static <T extends Number> int[] asArray(final T... a) {
         int[] b = new int[a.length];
-        for (int i = 0; i < b.length; i++) {
+        for (int i = 0; i < b.length; i++)
             b[i] = a[i].intValue();
-        }
         return b;
     }
-
-    public static String[] nMostFrequentGrams(TreeMap<String, ArrayList<Integer>> map, int n) {
-        ArrayList<String> xGramOccurances = new ArrayList<>();
-        ArrayList<Integer> numOfOccurances = new ArrayList<>();
-        map.forEach((k,v) -> {
-            xGramOccurances.add(k);
-            numOfOccurances.add(v.size());
-        });
-        String[] nMostFrequentSizes = new String[Math.min(n,xGramOccurances.size())];
-
-        int[] argSortOccurances = new int[numOfOccurances.size()];
-        for(int i = 0; i < numOfOccurances.size() ; i++)
-            argSortOccurances[i] = numOfOccurances.get(i);
-        argSortOccurances = argsort(argSortOccurances, false);
-
-        for(int i = 0; i < nMostFrequentSizes.length; i++) {
-            String s = xGramOccurances.get(argSortOccurances[i]);
-            nMostFrequentSizes[i] = s;
-        }
-        return nMostFrequentSizes;
-    }
-
-    public static String[] sortedSwedishGrams(boolean bi){
-        Map<String, Double> grams = bi ? Main.BIGRAM_FREQ_SWEDISH : Main.TRIGRAM_FREQ_SWEDISH;
-        int[] argSortedByFrequency = Helper.argsort(grams, false);
-        ArrayList<String> xGrams = new ArrayList<>();
-        grams.forEach((k,v) -> xGrams.add(k));
-        String[] sortedMostFrequentBiGrams = new String[argSortedByFrequency.length];
-        for(int i = 0; i < sortedMostFrequentBiGrams.length; i++){
-            sortedMostFrequentBiGrams[i] = xGrams.get(argSortedByFrequency[i]);
-        }
-        return sortedMostFrequentBiGrams;
-    }
-
-    public static int keyPos(int pos, int keyLength){
-        return pos % keyLength;
-    }
-
-    public static int[] mostFrequent(int[] arr, int keylength){
-        int[] mf = new int[keylength];
-        for(int i = 0; i < arr.length; i++)
-            mf[arr[i]]++;
-        return mf;
-    }
-
-
-
-
 
 }

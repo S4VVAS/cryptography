@@ -134,12 +134,10 @@ public class FreqAnalysisCracker {
     int findShiftWithMaxDotProduct(double[] a1, double[] a2) {
         double curDp = 0, maxDp = 0;
         int maxShift = 0, curShift;
-
         for (int shift = 0; shift < a2.length; shift++) {
             curShift = shift;
-            for (int i = 0; i < a1.length; i++) {
+            for (int i = 0; i < a1.length; i++)
                 curDp += (a1[i] * a2[i]);
-            }
             if (curDp > maxDp) {
                 maxShift = curShift;
                 maxDp = curDp;
@@ -172,7 +170,6 @@ public class FreqAnalysisCracker {
 
     //Comparator, helps to sort chars in a list deppending on their freq in given dict
     private class FrequencyComparator implements Comparator<String> {
-
         Map<String, Double> lettersFrequency;
 
         public FrequencyComparator(Map<String, Double> lettersFrequency) {

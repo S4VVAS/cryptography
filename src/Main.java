@@ -67,8 +67,19 @@ public class Main extends Encryptor {
         }
 */
 
+        for(int i = 1; i <= 14; i++){
+            cracker.crackEncryptionKasiski("vig_group" + i + ".crypto", "Cracked_GROUP" + i);
+        }
 
-       cracker.crackEncryptionKasiski("vig_group1.crypto", "testCracked_GROUP7");
+        for(int i = 1; i <= 6; i++){
+            cracker.crackEncryptionKasiski(i + ".crypto", "Cracked_TA" + i);
+        }
+
+
+       cracker.crackEncryptionKasiski("vig_group27.crypto", "Cracked_GROUP27");
+
+        cracker.crackEncryptionKasiski("combined.crypto", "combined");
+
 
         try {
             System.out.println("CrackedIOC text: " + Files.readString(Path.of(Main.PATH + "testCrackedIOC.plain")));

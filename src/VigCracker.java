@@ -2,6 +2,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -22,22 +23,22 @@ public class VigCracker {
             BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(cFile));
             StringBuilder stringBuilder = new StringBuilder();
 
-            ArrayList<String> TEMP_ARR = new ArrayList<>();
-
             TreeMap<String, Integer> frequentDistances = xGramDistanceAnalysis(cipherText);
-
-            System.out.println(frequentDistances.toString());
 
             ArrayList<Integer> keyLengths = getKeyLengths(removeGCDsAbove(frequentDistances, Main.MAX_KEYLENGTH));
 
+            VigCracker_copy vcc = new VigCracker_copy(Main.PATH + "1.crypto", Main.PATH + "svenska-ord.txt", Main.PATH + "helloTEST");
+
             if (keyLengths != null) {
-                System.out.println(keyLengths.toString());
                 for (int length : keyLengths) {
-                    TEMP_ARR.addAll(decryptFrequencyAnalysis(cipherText, length));
+                        stringBuilder.append(vcc.findKey(cipherText,length));
+                        //TEMP_ARR.addAll(decryptFrequencyAnalysis(cipherText, length));
                 }
-                for (String entry : TEMP_ARR) //PRINT TEMP
-                    System.out.println(entry);
             }
+
+            bufferedWriter.write(stringBuilder.toString());
+            bufferedWriter.close();
+            fileWriter.close();
         } catch (IOException e) {
             System.out.println("Error while setting up: " + e);
         }
@@ -182,11 +183,18 @@ public class VigCracker {
             char[] chars = frequencyTransformToChar(keyList[i]); //PRETTY BAD, IMPROVE
             keyBuilder.append(chars[0]);
         }
+        String firstKey = keyBuilder.toString();
+
         //After first key is constructed, decrypt using that key
         System.out.println("________________________________________________________________________________________________________________");
-        System.out.println("KEY: " + keyBuilder.toString());
-        String decText = dec.decrypt(keyBuilder.toString(), cipher);
+        System.out.println("KEY: " + firstKey);
+        String decText = dec.decrypt(firstKey, cipher);
         System.out.println("ROUND ZERO: " + decText + "\n");
+
+        ArrayList<String> possibleKeys = new ArrayList<>();
+
+
+        for (int i = 0; i < Main.N_MOST_FREQUENT_DECRYPT; i++) {
 
         //Find bigram and trigram positions
         TreeMap<String, ArrayList<Integer>> biGramOccurances = xGramOccurancesAnalysis(decText, 2);
@@ -196,10 +204,86 @@ public class VigCracker {
         String[] mostFrequentTriGramsInCipher = Helper.nMostFrequentGrams(triGramOccurances, Main.N_MOST_FREQUENT_DECRYPT);
 
 
-        String[] sortedMostFrequentBiGrams = new String[mostFrequentBiGramsInCipher.length];
-        String[] sortedMostFrequentTriGrams = new String[mostFrequentTriGramsInCipher.length];
+      //  String[] sortedMostFrequentBiGrams = new String[mostFrequentBiGramsInCipher.length];
+      //  String[] sortedMostFrequentTriGrams = new String[mostFrequentTriGramsInCipher.length];
         String[] mostFrequentBiGrams = Helper.sortedSwedishGrams(true);
         String[] mostFrequentTriGrams = Helper.sortedSwedishGrams(false);
+
+
+        //System.out.println("CI = SWE\n-------");
+
+           // System.out.print(mostFrequentBiGramsInCipher[i] + " = " + mostFrequentBiGrams[i]);
+
+            if (!mostFrequentBiGramsInCipher[i].equals(mostFrequentBiGrams[i])) {
+                int[] keyPos = new int[biGramOccurances.get(mostFrequentBiGramsInCipher[i]).size()];
+                for (int ei = 0; ei < biGramOccurances.get(mostFrequentBiGramsInCipher[i]).size(); ei++)
+                    keyPos[ei] = Helper.keyPos(biGramOccurances.get(mostFrequentBiGramsInCipher[i]).get(ei), firstKey.length());
+                int[] argSortedKeyPos = Helper.argsort(keyPos, false);
+
+                int firstOffset = Main.CHARS.indexOf(mostFrequentBiGrams[i].charAt(0)) - Main.CHARS.indexOf(mostFrequentBiGramsInCipher[i].charAt(0));
+                int secondOffset =  Main.CHARS.indexOf(mostFrequentBiGrams[i].charAt(1)) - Main.CHARS.indexOf(mostFrequentBiGramsInCipher[i].charAt(1));
+
+               // System.out.println(" -- offset: " + firstOffset + " and " + secondOffset);
+
+                int currPos = -1;
+                for(int key = 0; key < 2;){ //Looking at the two top most likely positions
+                    if(currPos == keyPos[argSortedKeyPos[key]])
+                        break;
+
+                    currPos = keyPos[argSortedKeyPos[key]];
+                    if(currPos < firstKey.length()-1){
+                        char firstKeyChar = firstKey.charAt(currPos);
+                        char secondKeyChar = firstKey.charAt(currPos+1);
+
+                        int fi = Main.CHARS.indexOf(firstKeyChar) + firstOffset;
+                        int se = Main.CHARS.indexOf(secondKeyChar) + secondOffset;
+
+                        char offsetFirstChar = Main.CHARS.charAt(fi < 0 ? fi + Main.CHARS.length() : fi >= Main.CHARS.length() ? fi - Main.CHARS.length() : fi);
+                        char offsetSecondChar = Main.CHARS.charAt(se < 0 ? se + Main.CHARS.length() : se >= Main.CHARS.length() ? se - Main.CHARS.length() : se);
+
+
+                       // System.out.println(firstKeyChar + " " + secondKeyChar);
+                       // System.out.println(offsetFirstChar + " " + offsetSecondChar);
+                       // System.out.println();
+
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(firstKey.substring(0,currPos));
+                        sb.append(offsetFirstChar);
+                        sb.append(offsetSecondChar);
+                        sb.append(firstKey.substring(currPos+2,firstKey.length()));
+                       // System.out.println(sb.toString());
+                        //System.out.println();
+
+
+                        possibleKeys.add(sb.toString());
+                        //IF match break
+
+                        firstKey = sb.toString();
+
+                        key++;
+                    }
+                }
+
+               // System.out.println(Arrays.toString(keyPos));
+
+
+                    //Get current key
+                    //Get position to replace
+                    //Get bigrams in positions
+                    //Get next biggest probability bigram, calculate offset, add offset to the key positions and add the key to possible key arraylist
+                    //Then decrypt using all currkeys
+
+            }
+            else {
+                //If match we dont need to swap, so dont do anything
+                //System.out.println("MATCH -> " + mostFrequentBiGramsInCipher[i]);
+            }
+        }
+
+        System.out.println(possibleKeys.toString());
+
+        /*
+
 
         for (int i = 0; i < Main.N_MOST_FREQUENT_DECRYPT; i++) {
             if (!mostFrequentBiGramsInCipher[i].equals(mostFrequentBiGrams[i])) {
@@ -207,18 +291,29 @@ public class VigCracker {
                 int[] keyPos = new int[biGramOccurances.get(mostFrequentBiGramsInCipher[i]).size()];
                 for (int ei = 0; ei < biGramOccurances.get(mostFrequentBiGramsInCipher[i]).size(); ei++)
                     keyPos[ei] = Helper.keyPos(biGramOccurances.get(mostFrequentBiGramsInCipher[i]).get(ei), keyBuilder.length());
+                int[] argSortedKeyPos = Helper.argsort(keyPos, false);
+
+                for( int key = 0; i < Math.min(Main.N_MOST_FREQUENT_DECRYPT, keyPos.length); key++){
+                    String currKey = keyBuilder.toString();
+
+                    //Get current key
+                    //Get position to replace
+                    //Get bigrams in positions
+                    //Get next biggest probability bigram, calculate offset, add offset to the key positions and add the key to possible key arraylist
+                    //Then decrypt using all currkeys
+
+                }
 
 
-                System.out.println(Arrays.toString((keyPos)));
+
+                System.out.println(Arrays.toString(keyPos) + " " + Arrays.toString(argSortedKeyPos));
 
             } else {
 
                 System.out.println("MATCH -> " + mostFrequentBiGramsInCipher[i]);
             }
-
-
         }
-
+*/
 
         return new ArrayList<>();
 

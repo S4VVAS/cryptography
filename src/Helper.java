@@ -117,8 +117,8 @@ public class Helper {
         return pos % keyLength;
     }
 
-    public static int[] mostFrequent(int[] arr){
-        int[] mf = new int[Main.MAX_KEYLENGTH];
+    public static int[] mostFrequent(int[] arr, int keylength){
+        int[] mf = new int[keylength];
         for(int i = 0; i < arr.length; i++)
             mf[arr[i]]++;
         return mf;

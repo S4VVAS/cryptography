@@ -15,8 +15,7 @@ public class Helper {
     }
 
     private static int gcdArrList(ArrayList<Integer> currArr, int index) {
-        if (index == currArr.size() - 1)
-            return currArr.get(index);
+        if (index == currArr.size() - 1) return currArr.get(index);
         return recursiveGcd(currArr.get(index), gcdArrList(currArr, index + 1));
     }
 

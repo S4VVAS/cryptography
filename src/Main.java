@@ -1,7 +1,3 @@
-import java.util.Map;
-
-import static java.util.Map.entry;
-
 public class Main extends Encryptor {
 
     //Encoding and Decoding alphabets

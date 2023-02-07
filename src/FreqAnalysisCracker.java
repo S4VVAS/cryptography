@@ -26,9 +26,8 @@ public class FreqAnalysisCracker {
         keyFileName = "key_" + plaintextFileName;
 
         //Separate words into a list
-        for (String word : dictionaryDump.split("\n")) {
+        for (String word : dictionaryDump.split("\n"))
             this.dictionary.add(word);
-        }
         populateLetterFrequency(this.dictionary);
 
         //Map alphabet characters to indices and indices to alphabet characters
@@ -40,9 +39,8 @@ public class FreqAnalysisCracker {
         }
 
         //Populate array of frequency to be used to find the key
-        for (String l : alphabetArr) {
+        for (String l : alphabetArr)
             alphabetFrequency[a2i.get(l)] = letterFrequency.get(l);
-        }
 
         keyLength = findKeyLength(ciphertext);
         System.out.println("Probable length of the key: " + keyLength);
@@ -68,8 +66,7 @@ public class FreqAnalysisCracker {
         String currentChar;
         double oldCount;
 
-        if (dictionary == null)
-            throw new RuntimeException("ERROR: given dictionary is null");
+        if (dictionary == null) throw new RuntimeException("ERROR: given dictionary is null");
         //Generate alphabet
         for (String c : Main.CHARS_TO_ARR.split(" "))
             letterFrequency.put(c, 0.0);
@@ -104,8 +101,7 @@ public class FreqAnalysisCracker {
 
         while (strip2.length() > maxMatch) {
             for (int i = 0; i < strip2.length(); i++)
-                if (strip1.charAt(i) == strip2.charAt(i))
-                    curMatch++;
+                if (strip1.charAt(i) == strip2.charAt(i)) curMatch++;
             if (curMatch > maxMatch) {
                 maxMatch = curMatch;
                 maxShift = curShift;
@@ -171,7 +167,7 @@ public class FreqAnalysisCracker {
 
         Decryptor dc = new Decryptor();
         //Decrypting using the key, and returning the key + plaintext
-        return "THE KEY IS: " + key + "\n" + dc.decrypt(key.toString(), ciphertext) +  "\n\n";
+        return "THE KEY IS: " + key + "\n" + dc.decrypt(key.toString(), ciphertext) + "\n\n";
     }
 
     //Comparator, helps to sort chars in a list deppending on their freq in given dict

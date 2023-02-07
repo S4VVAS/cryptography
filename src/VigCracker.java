@@ -35,11 +35,13 @@ public class VigCracker {
 
             FreqAnalysisCracker vcc = new FreqAnalysisCracker(cipherText, dict);
 
-            if (keyLengths != null)
-                for (int length : keyLengths){
-                        stringBuilder.append(vcc.findKey(cipherText,length));
-                }
+            //If keylengths exist, go over them and crack for each keylength
+            if (keyLengths != null) for (int length : keyLengths) {
+                //Append the resulting key and plaintext to the file writer
+                stringBuilder.append(vcc.findKey(cipherText, length));
+            }
 
+            //Write to file and close everything we opened
             bufferedWriter.write(stringBuilder.toString());
             bufferedWriter.close();
             fileWriter.close();
